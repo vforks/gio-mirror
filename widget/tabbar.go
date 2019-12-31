@@ -47,6 +47,32 @@ func (tb *Tabbar) Activate(key interface{}) {
 	}
 }
 
+func (tb *Tabbar) Prev() {
+	for i, tab := range tb.Tabs {
+		if tab == tb.Active {
+			if i == 0 {
+				tb.Activate(tb.Tabs[len(tb.Tabs)-1].w)
+			} else {
+				tb.Activate(tb.Tabs[i-1].w)
+			}
+			return
+		}
+	}
+}
+
+func (tb *Tabbar) Next() {
+	for i, tab := range tb.Tabs {
+		if tab == tb.Active {
+			if i < len(tb.Tabs)-1 {
+				tb.Activate(tb.Tabs[i+1].w)
+			} else {
+				tb.Activate(tb.Tabs[0].w)
+			}
+			return
+		}
+	}
+}
+
 // BecameActive returns true if the given tab has become active since the last time
 // BecameActive was called.  Use it in your Layout function to do things like
 // request focus when the tab becomes active.
