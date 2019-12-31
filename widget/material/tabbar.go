@@ -67,8 +67,8 @@ func (th *Theme) Tabbar() Tabbar {
 	return tb
 }
 
-func (tb *Tabbar) Layout(gtx *layout.Context, wtb *widget.Tabbar) {
-	wtb.Layout(gtx)
+func (tb Tabbar) Layout(gtx *layout.Context, wtb *widget.Tabbar) {
+	wtb.ProcessEvents(gtx)
 
 	in := layout.Inset{Top: unit.Dp(12), Right: unit.Dp(16), Bottom: unit.Dp(12), Left: unit.Dp(16)}
 	layout.Flex{Axis: layout.Vertical, Alignment: layout.Start}.
@@ -87,10 +87,10 @@ func (tb *Tabbar) Layout(gtx *layout.Context, wtb *widget.Tabbar) {
 					})
 					dims := gtx.Dimensions
 					pointer.Rect(image.Rectangle{Max: gtx.Dimensions.Size}).Add(gtx.Ops)
-					wtb.Tabs[i].Layout(gtx)
+					wtb.Tabs[i].LayoutButton(gtx)
 
 					// Underline the active item
-					if wtb.Active == i {
+					if wtb.Tabs[i] == wtb.Active {
 						paint.ColorOp{Color: color.RGBA{
 							A: 0xff, B: 0xff,
 						}}.Add(gtx.Ops)
@@ -104,7 +104,7 @@ func (tb *Tabbar) Layout(gtx *layout.Context, wtb *widget.Tabbar) {
 				})
 			}),
 			layout.Rigid(func() {
-				tb.Tabs[wtb.Active].Layout(gtx)
+				wtb.Active.Layout(gtx)
 			}),
 		)
 }

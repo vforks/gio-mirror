@@ -42,6 +42,10 @@ type Direction uint8
 // computing dimensions for a user interface element.
 type Widget func()
 
+type Layouter interface {
+	Layout(gtx *Context)
+}
+
 const (
 	Start Alignment = iota
 	End
