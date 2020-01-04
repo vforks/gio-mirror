@@ -51,7 +51,10 @@ const (
 	IconTop
 )
 
-func (th *Theme) Tabbar() Tabbar {
+// Tabbar creates a new tab bar.  You should store it and reuse it for each
+// layout, because the embedded layout.List has some state you need to keep
+// around.
+func (th *Theme) Tabbar() *Tabbar {
 	tb := Tabbar{
 		th:         th,
 		Scrollable: false,
@@ -64,10 +67,10 @@ func (th *Theme) Tabbar() Tabbar {
 	tb.Color.Inactive = rgb(0xffffff) // FIXME
 	tb.Color.Container = th.Color.Primary
 	tb.Color.Divider = rgb(0xffffff) // FIXME
-	return tb
+	return &tb
 }
 
-func (tb Tabbar) Layout(gtx *layout.Context, wtb *widget.Tabbar) {
+func (tb *Tabbar) Layout(gtx *layout.Context, wtb *widget.Tabbar) {
 	wtb.ProcessEvents(gtx)
 
 	in := layout.Inset{Top: unit.Dp(12), Right: unit.Dp(16), Bottom: unit.Dp(12), Left: unit.Dp(16)}
