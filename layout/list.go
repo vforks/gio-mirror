@@ -46,6 +46,7 @@ type List struct {
 
 	// maxSize is the total size of visible children.
 	maxSize  int
+	size     image.Point
 	children []scrollChild
 	dir      iterationDir
 }
@@ -69,8 +70,10 @@ type Position struct {
 	BeforeEnd bool
 	// First is the index of the first visible child.
 	First int
+	// last is the index of the last visible child, +1.
+	last int
 	// Offset is the distance in pixels from the top edge to the child at index
-	// First.
+	// First.  Positive offsets are above the edge.
 	Offset int
 }
 
@@ -119,6 +122,29 @@ func (l *List) scrollToEnd() bool {
 // Dragging reports whether the List is being dragged.
 func (l *List) Dragging() bool {
 	return l.scroll.State() == gesture.StateDragging
+}
+
+// ScrollTo makes sure list index item i is in view.  If it's above the top,
+// it becomes the top item.  If it's below the bottom, it becomes the bottom
+// item.
+func (l *List) ScrollTo(i int) {
+	p := &l.Position
+	switch {
+	case i <= p.First:
+		if i < p.First {
+			p.First = i
+		}
+		p.Offset = 0
+	// Deal with partially shown items
+	case i == p.last-1 && l.maxSize > axisMain(l.Axis, l.size):
+		p.First++
+	case i >= p.last:
+		p.First = i - (p.last - p.First) + 1
+		// Deal with partially shown items again
+		if l.maxSize > axisMain(l.Axis, l.size) {
+			p.First++
+		}
+	}
 }
 
 func (l *List) update() {
@@ -272,12 +298,13 @@ func (l *List) layout() Dimensions {
 		l.scroll.Stop()
 	}
 	l.Position.BeforeEnd = !atEnd
-	dims := axisPoint(l.Axis, mainc.Constrain(pos), maxCross)
+	l.Position.last = l.Position.First + len(children)
+	l.size = axisPoint(l.Axis, mainc.Constrain(pos), maxCross)
 	l.macro.Stop()
-	pointer.Rect(image.Rectangle{Max: dims}).Add(ops)
+	pointer.Rect(image.Rectangle{Max: l.size}).Add(ops)
 	l.scroll.Add(ops)
 	l.macro.Add()
-	return Dimensions{Size: dims}
+	return Dimensions{Size: l.size}
 }
 
 func toRectF(r image.Rectangle) f32.Rectangle {
