@@ -19,6 +19,10 @@ type (
 		w      layout.Layouter
 		button Button
 	}
+
+	Activater interface {
+		Activate()
+	}
 )
 
 func NewTabbar(tabs ...*Tab) *Tabbar {
@@ -44,6 +48,9 @@ func (tb *Tabbar) Activate(key interface{}) {
 	if tab, ok := tb.byAddress[key]; ok {
 		tb.Active = tab
 		tb.becameActive = tab
+		if act, ok := key.(Activater); ok {
+			act.Activate()
+		}
 	}
 }
 

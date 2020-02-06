@@ -58,8 +58,8 @@ func (th *Theme) Tabbar() *Tabbar {
 	tb := Tabbar{
 		th:         th,
 		Scrollable: false,
-		Font: text.Font{
-			Size: th.TextSize.Scale(14.0 / 16.0),
+		Font:       text.Font{
+			// Size: th.TextSize.Scale(14.0 / 16.0),
 		},
 		Buttons: layout.List{Axis: layout.Horizontal, Alignment: layout.Middle},
 	}
@@ -84,7 +84,7 @@ func (tb *Tabbar) Layout(gtx *layout.Context, wtb *widget.Tabbar) {
 						Height: layout.Constraint{Min: gtx.Px(unit.Dp(48)), Max: gtx.Px(unit.Dp(48))},
 					}
 					in.Layout(gtx, func() {
-						layout.Align(layout.Center).Layout(gtx, func() {
+						layout.Direction(layout.Center).Layout(gtx, func() {
 							tb.th.Body2(wtb.Tabs[i].Label).Layout(gtx)
 						})
 					})
