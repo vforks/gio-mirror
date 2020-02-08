@@ -76,8 +76,6 @@ type Position struct {
 	BeforeEnd bool
 	// First is the index of the first visible child.
 	First int
-	// last is the index of the last visible child, +1.
-	last int
 	// Offset is the distance in pixels from the top edge to the child at index
 	// First.  Positive offsets are above the edge.
 	Offset int
@@ -319,7 +317,6 @@ func (l *List) layout() Dimensions {
 		l.scroll.Stop()
 	}
 	l.Position.BeforeEnd = !atEnd
-	l.Position.last = l.Position.First + len(children)
 	dims := axisPoint(l.Axis, mainc.Constrain(pos), maxCross)
 	l.macro.Stop()
 	pointer.Rect(image.Rectangle{Max: dims}).Add(ops)
