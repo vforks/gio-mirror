@@ -100,14 +100,14 @@ func (l *List) init(gtx *Context, len int) {
 	l.len = len
 	l.update()
 	if l.doScrollTo {
+		if l.scrollTo >= len {
+			l.scrollTo = len - 1
+		}
 		// If l.scrollTo is already in view, do nothing.
 		if l.firstDrawn < l.scrollTo &&
 			l.scrollTo < l.lastDrawn {
 			l.doScrollTo = false
 		} else {
-			if l.scrollTo >= len {
-				l.scrollTo = len - 1
-			}
 			l.Position.Offset = 0
 			l.Position.First = l.scrollTo
 			if l.lastDrawn > 0 && l.scrollTo >= l.lastDrawn {
