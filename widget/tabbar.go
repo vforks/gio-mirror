@@ -8,10 +8,9 @@ import (
 
 type (
 	Tabbar struct {
-		Tabs         []*Tab
-		byAddress    map[interface{}]*Tab
-		Active       *Tab
-		becameActive *Tab
+		Tabs      []*Tab
+		byAddress map[interface{}]*Tab
+		Active    *Tab
 	}
 
 	Tab struct {
@@ -47,7 +46,6 @@ func (tb *Tabbar) ProcessEvents(gtx *layout.Context) {
 func (tb *Tabbar) Activate(key interface{}) {
 	if tab, ok := tb.byAddress[key]; ok {
 		tb.Active = tab
-		tb.becameActive = tab
 		if act, ok := key.(Activater); ok {
 			act.Activate()
 		}
@@ -78,17 +76,6 @@ func (tb *Tabbar) Next() {
 			return
 		}
 	}
-}
-
-// BecameActive returns true if the given tab has become active since the last time
-// BecameActive was called.  Use it in your Layout function to do things like
-// request focus when the tab becomes active.
-func (tb *Tabbar) BecameActive(key interface{}) bool {
-	if tab, ok := tb.byAddress[key]; ok && tb.Active == tab && tb.becameActive == tab {
-		tb.becameActive = nil
-		return true
-	}
-	return false
 }
 
 func NewTab(label string, w layout.Layouter) *Tab {
