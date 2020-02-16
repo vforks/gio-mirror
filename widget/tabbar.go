@@ -14,9 +14,11 @@ type (
 	}
 
 	Tab struct {
-		Label  string
-		w      layout.Layouter
-		button Button
+		Label       string
+		W           layout.Layouter
+		Closeable   bool
+		button      Button
+		CloseButton Button
 	}
 
 	Activater interface {
@@ -30,16 +32,73 @@ func NewTabbar(tabs ...*Tab) *Tabbar {
 		byAddress: map[interface{}]*Tab{},
 	}
 	for _, tab := range tabs {
-		tb.byAddress[tab.w] = tab
+		tb.byAddress[tab.W] = tab
 	}
 	return &tb
 }
 
 func (tb *Tabbar) ProcessEvents(gtx *layout.Context) {
-	for _, tab := range tb.Tabs {
-		if tab.button.Clicked(gtx) {
-			tb.Activate(tab.w)
+	for i, tab := range tb.Tabs {
+		if tab.CloseButton.Clicked(gtx) {
+			tb.Close(i)
 		}
+		if tab.button.Clicked(gtx) {
+			tb.Activate(tab.W)
+		}
+	}
+}
+
+func (tb *Tabbar) Prev() {
+	for i, tab := range tb.Tabs {
+		if tab == tb.Active {
+			if i == 0 {
+				tb.Activate(tb.Tabs[len(tb.Tabs)-1].W)
+			} else {
+				tb.Activate(tb.Tabs[i-1].W)
+			}
+			return
+		}
+	}
+}
+
+func (tb *Tabbar) Next() {
+	for i, tab := range tb.Tabs {
+		if tab == tb.Active {
+			if i < len(tb.Tabs)-1 {
+				tb.Activate(tb.Tabs[i+1].W)
+			} else {
+				tb.Activate(tb.Tabs[0].W)
+			}
+			return
+		}
+	}
+}
+
+func (tb *Tabbar) Insert(index int, t *Tab) {
+	if index > len(tb.Tabs) {
+		index = len(tb.Tabs)
+	}
+	tb.Tabs = append(tb.Tabs, nil)
+	copy(tb.Tabs[index+1:], tb.Tabs[index:])
+	tb.Tabs[index] = t
+	tb.byAddress[t.W] = t
+}
+
+// Close closes the indicated tab.  If that tab is active, activates the one
+// to its right, or if there isn't one, the (new) last tab.
+func (tb *Tabbar) Close(index int) {
+	if index >= len(tb.Tabs) {
+		return
+	}
+	tab := tb.Tabs[index]
+	copy(tb.Tabs[index:], tb.Tabs[index+1:])
+	tb.Tabs = tb.Tabs[:len(tb.Tabs)-1]
+	delete(tb.byAddress, tab.W)
+	if tb.Active == tab {
+		if index >= len(tb.Tabs) {
+			index = len(tb.Tabs) - 1
+		}
+		tb.Activate(tb.Tabs[index].W)
 	}
 }
 
@@ -52,34 +111,12 @@ func (tb *Tabbar) Activate(key interface{}) {
 	}
 }
 
-func (tb *Tabbar) Prev() {
-	for i, tab := range tb.Tabs {
-		if tab == tb.Active {
-			if i == 0 {
-				tb.Activate(tb.Tabs[len(tb.Tabs)-1].w)
-			} else {
-				tb.Activate(tb.Tabs[i-1].w)
-			}
-			return
-		}
-	}
+func (tb *Tabbar) Append(t *Tab) {
+	tb.Insert(len(tb.Tabs), t)
 }
 
-func (tb *Tabbar) Next() {
-	for i, tab := range tb.Tabs {
-		if tab == tb.Active {
-			if i < len(tb.Tabs)-1 {
-				tb.Activate(tb.Tabs[i+1].w)
-			} else {
-				tb.Activate(tb.Tabs[0].w)
-			}
-			return
-		}
-	}
-}
-
-func NewTab(label string, w layout.Layouter) *Tab {
-	return &Tab{Label: label, w: w}
+func NewTab(label string, w layout.Layouter, closeable bool) *Tab {
+	return &Tab{Label: label, W: w, Closeable: closeable}
 }
 
 func (t *Tab) LayoutButton(gtx *layout.Context) {
@@ -87,5 +124,5 @@ func (t *Tab) LayoutButton(gtx *layout.Context) {
 }
 
 func (t *Tab) Layout(gtx *layout.Context) {
-	t.w.Layout(gtx)
+	t.W.Layout(gtx)
 }

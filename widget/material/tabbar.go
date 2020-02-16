@@ -9,10 +9,12 @@ import (
 	"gioui.org/f32"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
+	"gioui.org/op"
 	"gioui.org/op/paint"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
+	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type (
@@ -30,10 +32,11 @@ type (
 			Container color.RGBA
 			Divider   color.RGBA
 		}
-		Font     text.Font
-		IconType IconType
-		Buttons  layout.List
-		Tabs     []Tab
+		Font      text.Font
+		IconType  IconType
+		Buttons   layout.List
+		Tabs      []Tab
+		CloseIcon *Icon
 	}
 
 	Tab interface {
@@ -61,7 +64,7 @@ func (th *Theme) Tabbar() *Tabbar {
 		Font:       text.Font{
 			// Size: th.TextSize.Scale(14.0 / 16.0),
 		},
-		Buttons: layout.List{Axis: layout.Horizontal, Alignment: layout.Middle},
+		CloseIcon: mustIcon(NewIcon(icons.NavigationClose)),
 	}
 	tb.Color.Active = th.Color.Text
 	tb.Color.Inactive = rgb(0xffffff) // FIXME
@@ -73,27 +76,54 @@ func (th *Theme) Tabbar() *Tabbar {
 func (tb *Tabbar) Layout(gtx *layout.Context, wtb *widget.Tabbar) {
 	wtb.ProcessEvents(gtx)
 
-	in := layout.Inset{Top: unit.Dp(12), Right: unit.Dp(16), Bottom: unit.Dp(12), Left: unit.Dp(16)}
 	layout.Flex{Axis: layout.Vertical, Alignment: layout.Start}.
 		Layout(gtx,
 			layout.Rigid(func() {
 				tb.Buttons.Layout(gtx, len(wtb.Tabs), func(i int) {
+					tab := wtb.Tabs[i]
 					// From https://material.io/components/tabs/#specs
 					gtx.Constraints = layout.Constraints{
 						Width:  layout.Constraint{Min: gtx.Px(unit.Dp(90)), Max: gtx.Px(unit.Dp(360))},
 						Height: layout.Constraint{Min: gtx.Px(unit.Dp(48)), Max: gtx.Px(unit.Dp(48))},
 					}
-					in.Layout(gtx, func() {
-						layout.Direction(layout.Center).Layout(gtx, func() {
-							tb.th.Body2(wtb.Tabs[i].Label).Layout(gtx)
+					var m op.MacroOp
+					m.Record(gtx.Ops)
+					layout.Inset{
+						Top: unit.Dp(12), Bottom: unit.Dp(12),
+						Left: unit.Dp(16), Right: unit.Dp(16),
+					}.Layout(gtx, func() {
+						layout.Center.Layout(gtx, func() {
+							// Get the dimensions of the label
+							var m2 op.MacroOp
+							m2.Record(gtx.Ops)
+							tb.th.Body2(tab.Label).Layout(gtx)
+							m2.Stop()
+							lblDims := gtx.Dimensions
+
+							layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+								layout.Rigid(func() {
+									if tab.Closeable {
+										ib := tb.th.IconButton(tb.CloseIcon)
+										ib.Size = unit.Px(float32(lblDims.Size.Y - 2))
+										ib.Padding = unit.Dp(0)
+										ib.Layout(gtx, &tab.CloseButton)
+									}
+								}),
+								layout.Rigid(func() {
+									// Draw the label
+									m2.Add()
+									gtx.Dimensions = lblDims
+								}))
 						})
 					})
+					m.Stop()
 					dims := gtx.Dimensions
-					pointer.Rect(image.Rectangle{Max: gtx.Dimensions.Size}).Add(gtx.Ops)
-					wtb.Tabs[i].LayoutButton(gtx)
+					pointer.Rect(image.Rectangle{Max: dims.Size}).Add(gtx.Ops)
+					tab.LayoutButton(gtx)
+					m.Add()
 
 					// Underline the active item
-					if wtb.Tabs[i] == wtb.Active {
+					if tab == wtb.Active {
 						paint.ColorOp{Color: color.RGBA{
 							A: 0xff, B: 0xff,
 						}}.Add(gtx.Ops)
