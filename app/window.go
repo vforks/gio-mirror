@@ -375,8 +375,12 @@ func (w *Window) run(opts *window.Options) {
 				w.driver = e2.driver
 			case system.DestroyEvent:
 				w.destroyGPU()
+				// log.Printf("Window.run sending DestroyEvent")
 				w.out <- e2
+				// log.Printf("Window.run sent DestroyEvent")
+				time.Sleep(100 * time.Millisecond)
 				w.ack <- struct{}{}
+				// log.Printf("Window.run sent ack")
 				return
 			case event.Event:
 				if w.queue.q.Add(e2) {

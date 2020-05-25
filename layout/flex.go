@@ -71,16 +71,25 @@ func Flexed(weight float32, widget Widget) FlexChild {
 	}
 }
 
+var Profile = false
+
 // Layout a list of children. The position of the children are
 // determined by the specified order, but Rigid children are laid out
 // before Flexed children.
 func (f Flex) Layout(gtx Context, children ...FlexChild) Dimensions {
 	size := 0
+	// start := time.Now()
+	// numDrawn := 0
 	// Lay out Rigid children.
 	for i, child := range children {
 		if child.flex {
 			continue
 		}
+		// start2 := time.Now()
+		// if Profile {
+		// 	log.Printf("start2: %v; %d children",
+		// 		start2, len(children))
+		// }
 		cs := gtx.Constraints
 		_, mainMax := axisMainConstraint(f.Axis, cs)
 		mainMax -= size
@@ -98,7 +107,17 @@ func (f Flex) Layout(gtx Context, children ...FlexChild) Dimensions {
 		size += sz
 		children[i].call = c
 		children[i].dims = dims
+		// if Profile {
+		// 	log.Printf("rigid child %d: %v; start2: %v, %d children", i, time.Now().Sub(start2),
+		// 		start2, len(children))
+		// }
+		// numDrawn++
 	}
+	// if Profile {
+	// 	total := time.Now().Sub(start)
+	// 	log.Printf("after rigids: %d children: %v, avg: %v", numDrawn, total,
+	// 		time.Duration(int64(total)/int64(numDrawn)))
+	// }
 	rigidSize := size
 	// fraction is the rounding error from a Flex weighting.
 	var fraction float32
@@ -133,6 +152,7 @@ func (f Flex) Layout(gtx Context, children ...FlexChild) Dimensions {
 		children[i].call = c
 		children[i].dims = dims
 	}
+	// start = time.Now()
 	var maxCross int
 	var maxBaseline int
 	for _, child := range children {
@@ -143,6 +163,10 @@ func (f Flex) Layout(gtx Context, children ...FlexChild) Dimensions {
 			maxBaseline = b
 		}
 	}
+	// if Profile {
+	// 	log.Printf("maxCross calc: %v", time.Now().Sub(start))
+	// }
+	// start = time.Now()
 	cs := gtx.Constraints
 	mainMin, _ := axisMainConstraint(f.Axis, cs)
 	var space int
@@ -190,6 +214,9 @@ func (f Flex) Layout(gtx Context, children ...FlexChild) Dimensions {
 			}
 		}
 	}
+	// if Profile {
+	// 	log.Printf("layout all: %v", time.Now().Sub(start))
+	// }
 	switch f.Spacing {
 	case SpaceSides:
 		mainSize += space / 2

@@ -165,6 +165,11 @@ func (l *List) ScrollTo(i int) {
 }
 
 func (l *List) PageUp() {
+	// If already at the top, do nothing
+	if l.Position.BeforeEnd && l.Position.First == 0 && l.Position.Offset == 0 {
+		return
+	}
+
 	l.Position.Offset -= l.height
 	// If you don't do this and l.ScrollToEnd == true, Position.Offset is
 	// ignored.
@@ -172,6 +177,11 @@ func (l *List) PageUp() {
 }
 
 func (l *List) PageDown() {
+	// If already at the end, do nothing.
+	if !l.Position.BeforeEnd {
+		return
+	}
+
 	l.Position.Offset += l.height
 	l.Position.BeforeEnd = true
 }

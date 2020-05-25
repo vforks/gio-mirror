@@ -40,7 +40,7 @@ type pathKey struct {
 	str  string
 }
 
-const maxSize = 1000
+const maxSize = 10000
 
 func (l *layoutCache) Get(k layoutKey) ([]Line, bool) {
 	if lt, ok := l.m[k]; ok {
