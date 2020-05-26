@@ -42,13 +42,7 @@
 - (void)windowWillClose:(NSNotification *)notification {
 	gio_onTerminate((__bridge CFTypeRef)self.window.contentView);
 	self.window.delegate = nil;
-	// printf("windowWillClose 1\n");
 	[NSApp terminate:nil];
-	// printf("windowWillClose 2\n");
-	// for (int i = 0; i < 100; i++) {
-	//   printf("windowWillClose 3 %d\n", i);
-	//   usleep(1000);
-	// }
 }
 @end
 
@@ -159,6 +153,5 @@ void gio_main(CFTypeRef viewRef, const char *title, CGFloat width, CGFloat heigh
 		[window makeFirstResponder:view];
 
 		[NSApp run];
-		// printf("NSApp run finished\n");
 	}
 }

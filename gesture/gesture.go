@@ -193,7 +193,6 @@ func (s *Scroll) Scroll(cfg unit.Converter, q event.Queue, t time.Time, axis Axi
 		if !ok {
 			continue
 		}
-		// log.Printf("gesture.Scroll.Scroll event: %+v", e)
 		switch e.Type {
 		case pointer.Press:
 			if s.dragging || e.Source != pointer.Touch {

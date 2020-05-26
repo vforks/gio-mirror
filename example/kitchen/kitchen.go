@@ -128,11 +128,12 @@ func loop(w *app.Window) error {
 				e.Frame(gtx.Ops)
 			}
 		case p := <-progressIncrementer:
-			progress += p
-			if progress > 100 {
-				progress = 0
-			}
-			w.Invalidate()
+			_ = p
+			// progress += p
+			// if progress > 100 {
+			// 	progress = 0
+			// }
+			// w.Invalidate()
 		}
 	}
 }
